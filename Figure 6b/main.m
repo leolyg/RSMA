@@ -8,7 +8,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 
 % The code is written by Yijie (Lina) Mao
-%
+% 
 % The code is implemented in Matlab environment with CVX toolbox 
 % assisted. 
 %
@@ -19,33 +19,21 @@
 
 
 
-
-
 clc;clear all; clf
 
-%number of transmit antenna
-NT=4; 
+% 常数定义
+%------------------------------------
+NT=4; %number of transmit antenna
+bias=0.3; %channel gain difference 
+SNRdB=20; %SNR in dB
+tolerance = 10^-6; %accuracy of convergence 
+N_channel=100; %number of random channel
+weight=[-3 -1:0.05:1 3]; %user weights
+u2=10.^weight; %用户2权重
+u1=ones(1,length(u2)); %用户1权重
+%------------------------------------
 
-%channel gain difference 
-bias=0.3;
-
-
-%SNR in dB
-SNRdB=20; 
-
-%accuracy of convergence 
-tolerance = 10^-6;
-
-
-%number of random channel
-N_channel=100;
-
-%user weights
-weight=[-3 -1:0.05:1 3];
-u2=10.^weight;
-u1=ones(1,length(u2));
-
-
+% 用来存储每个用户容量的变量
 capacity_DPC_UE1_average =zeros(length(u1),1);
 capacity_DPC_UE2_average =zeros(length(u1),1);
 capacity_MULP_UE1_average=zeros(length(u1),1);
@@ -59,12 +47,13 @@ capacity_RS_order1_UE2_average=zeros(length(u1),1);
 capacity_RS_order2_UE1_average=zeros(length(u1),1);
 capacity_RS_order2_UE2_average=zeros(length(u1),1);
    
+% 遍历所有的用户
 for i_weight=1:length(u1)
-    
+    % 执行多次取平均
     for i_channel=1:N_channel
         weights=[u1(i_weight),u2(i_weight)]; 
         [i_weight, i_channel]
-        randn('seed',i_channel*4)
+        randn('seed',i_channel*4) %设置随机种子
         H_BC(:,:,1)=1/sqrt(2)*(randn(1,NT)+1i*randn(1,NT));
         H_BC(:,:,2)=1/sqrt(2)*(randn(1,NT)+1i*randn(1,NT))*bias;
 
@@ -79,24 +68,23 @@ for i_weight=1:length(u1)
         
         Capacity_MULP = MULP_rateRegion(weights,H_BC,SNRdB,tolerance);
         
+            capacity_DPC_UE1(i_channel)=Capacity_DPC(1);
+            capacity_DPC_UE2(i_channel)=Capacity_DPC(2);           
+            
+            capacity_MULP_UE1(i_channel)=Capacity_MULP(1);
+            capacity_MULP_UE2(i_channel)=Capacity_MULP(2);
 
-          capacity_DPC_UE1(i_channel)=Capacity_DPC(1);
-          capacity_DPC_UE2(i_channel)=Capacity_DPC(2);           
-          
-          capacity_MULP_UE1(i_channel)=Capacity_MULP(1);
-          capacity_MULP_UE2(i_channel)=Capacity_MULP(2);
+            capacity_NOMA_order1_UE1(i_channel)=Capacity_NOMA_order1(1);
+            capacity_NOMA_order1_UE2(i_channel)=Capacity_NOMA_order1(2);
+            
+            capacity_NOMA_order2_UE1(i_channel)=Capacity_NOMA_order2(1);
+            capacity_NOMA_order2_UE2(i_channel)=Capacity_NOMA_order2(2);
 
-          capacity_NOMA_order1_UE1(i_channel)=Capacity_NOMA_order1(1);
-          capacity_NOMA_order1_UE2(i_channel)=Capacity_NOMA_order1(2);
-          
-          capacity_NOMA_order2_UE1(i_channel)=Capacity_NOMA_order2(1);
-          capacity_NOMA_order2_UE2(i_channel)=Capacity_NOMA_order2(2);
-
-          capacity_RS_order1_UE1(i_channel) = Capacity_RS_order1(1);
-          capacity_RS_order1_UE2(i_channel) = Capacity_RS_order1(2);
+            capacity_RS_order1_UE1(i_channel) = Capacity_RS_order1(1);
+            capacity_RS_order1_UE2(i_channel) = Capacity_RS_order1(2);
         
-          capacity_RS_order2_UE1(i_channel) = Capacity_RS_order2(1);
-          capacity_RS_order2_UE2(i_channel) = Capacity_RS_order2(2);
+            capacity_RS_order2_UE1(i_channel) = Capacity_RS_order2(1);
+            capacity_RS_order2_UE2(i_channel) = Capacity_RS_order2(2);
         
     end %end user weights
     
